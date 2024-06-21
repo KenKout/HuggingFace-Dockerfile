@@ -1,0 +1,31 @@
+FROM ubuntu
+
+RUN apt update -y && apt install -y curl
+RUN curl -fsSL https://code-server.dev/install.sh | sh
+
+RUN apt install -y \
+      git gcc wget gzip busybox sudo
+
+# RUN useradd ubuntu
+# RUN mkdir /home/ubuntu
+# RUN chown ubuntu /home/ubuntu
+
+USER root
+
+RUN busybox --install /bin
+
+RUN chsh -s bash
+
+USER root
+
+RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN echo 'root:root' | chpasswd
+
+USER ubuntu
+RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+RUN (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/ubuntu/.profile
+RUN eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+RUN sudo apt-get -y install build-essential
+
+USER root
+CMD bash -c "code-server --bind-addr 0.0.0.0:8443 --auth none"
